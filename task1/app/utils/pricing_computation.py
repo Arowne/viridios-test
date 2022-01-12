@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import datetime as dt
 import numpy as np
@@ -8,9 +9,8 @@ from app.models.input import Input
 
 tf.keras.backend.clear_session()
 tf.keras.backend.set_floatx('float32')
-print(tf.__version__)
 
-path = './data_models/'
+path = './utils/data_models/'
 
 def _load_model(network,location):
 
@@ -74,12 +74,12 @@ def get_scenarios():
     
     return sce
 
-def pricing_computation(data: Input):
+def pricing_computation(input_data: Input):
     data = []
     
-    for scenario in data["scenarios"]:
+    for scenario in input_data.scenarios:
         
-        inputs = {'index': scenario["project"]["index"]}
+        inputs = {'index': scenario.project.index}
         outputs = {'beta': ['bmk1', 
                             'bmk2', 
                             'bmk3', 
@@ -88,6 +88,7 @@ def pricing_computation(data: Input):
                             'bmk6'
                             ],
                 'sigma': ['sigma']}
+        
         units = {'input':800,'hidden':[800]*8}
         
         network = {'inputs': inputs,'outputs':outputs,'units':units}
@@ -96,8 +97,8 @@ def pricing_computation(data: Input):
         benchmarks = get_benchmarks()
         scenarios = get_scenarios()
         data.append({
-            "project": {"index": scenario["project"]["index"] },
-            "history": _calculate_indices(model, scenarios, benchmarks_df.loc[data["end_date"]])
+            "project": {"index":  scenario.project.index },
+            "history": _calculate_indices(model, scenarios, benchmarks_df.loc[input_data.end_date])
         })
     
     return data
